@@ -1,0 +1,42 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unit tests (stdlib only, offline)
+        run: python -m unittest discover -s tests -v
+      - name: Lint (pyflakes)
+        run: |
+          pip install pyflakes
+          pyflakes opsmind
+
+  yaml-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate YAML manifests parse
+        run: |
+          pip install pyyaml
+          python - <<'PY'
+          import glob, sys, yaml
+          bad = 0
+          for f in glob.glob("deploy/**/*.yaml", recursive=True):
+              try:
+                  list(yaml.safe_load_all(open(f)))
+              except Exception as e:
+                  print(f"INVALID {f}: {e}"); bad += 1
+          sys.exit(1 if bad else 0)
+          PY
