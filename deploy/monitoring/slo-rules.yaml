@@ -1,0 +1,48 @@
+# SLO and burn-rate alerting for the sample app.
+# SLO: 99% availability (success ratio) over a rolling window.
+# The metric names come from prometheus-fastapi-instrumentator.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: sample-app-slo
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: sample-app.slo
+      rules:
+        # 5-minute error ratio (5xx over all responses) as a percentage.
+        - record: job:sample_app_error_ratio:5m
+          expr: |
+            100 * (
+              sum(rate(http_requests_total{handler="/work",status=~"5.."}[5m]))
+              /
+              clamp_min(sum(rate(http_requests_total{handler="/work"}[5m])), 1e-9)
+            )
+
+        # Fast burn: error ratio well above the 1% budget for 5 minutes.
+        - alert: HighErrorRate
+          expr: job:sample_app_error_ratio:5m > 5
+          for: 5m
+          labels:
+            severity: critical
+            service: sample-app
+          annotations:
+            summary: "5xx error ratio above SLO for sample-app"
+            slo: "99% availability over 30 days"
+
+        # Latency SLO guard: P99 over 500ms for 10 minutes.
+        - alert: HighP99Latency
+          expr: |
+            histogram_quantile(
+              0.99,
+              sum(rate(http_request_duration_seconds_bucket{handler="/work"}[5m])) by (le)
+            ) * 1000 > 500
+          for: 10m
+          labels:
+            severity: warning
+            service: sample-app
+          annotations:
+            summary: "P99 latency above 500ms for sample-app"
+            slo: "P99 < 500ms"
