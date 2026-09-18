@@ -17,3 +17,8 @@ incident-reports/
 Thumbs.db
 .vscode/
 .idea/
+
+# local scratch (not part of the project)
+_ship.py
+_shiplog.txt
+_ship_out.txt
