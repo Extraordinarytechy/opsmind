@@ -1,0 +1,7 @@
+# Core engine has NO required third-party dependencies (stdlib only), so it runs
+# anywhere including offline CI.
+#
+# Optional extras:
+#   boto3   -> only needed for the Bedrock provider (pip install boto3)
+#
+# The sample workload has its own requirements in deploy/sample-app/requirements.txt.
