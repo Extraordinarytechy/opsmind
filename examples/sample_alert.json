@@ -1,0 +1,20 @@
+{
+  "alert": {
+    "name": "HighErrorRate",
+    "severity": "critical",
+    "summary": "5xx error ratio above SLO for the payments service",
+    "service": "payments",
+    "labels": {"namespace": "apps", "team": "checkout"}
+  },
+  "metrics": [
+    {"name": "error_rate", "value": 6.4, "threshold": 1.0, "unit": "%"},
+    {"name": "p99_latency_ms", "value": 420.0, "threshold": 500.0, "unit": "ms"},
+    {"name": "memory_usage_pct", "value": 71.0, "threshold": 90.0, "unit": "%"}
+  ],
+  "recent_deploys": ["deploy/payments@v2.4.1"],
+  "log_excerpts": [
+    "ERROR upstream connect error or disconnect/reset before headers",
+    "ERROR NullPointer in PaymentValidator after config change"
+  ],
+  "slo": {"objective": "99.0", "window_days": 30, "sli": "availability"}
+}
